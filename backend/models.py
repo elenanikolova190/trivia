@@ -3,9 +3,17 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 import sys
+from dotenv import load_dotenv
 
-#database_name = "trivia"
-#database_path = "postgresql://{}/{}".format('localhost:5432', database_name)
+load_dotenv()
+
+database_name = os.getenv('DB_NAME')
+database_user = os.getenv('DB_USER')
+database_passwrd = os.getenv('DB_PASSWORD')
+database_host = 'localhost:5432'
+
+database_path = "postgresql://{}:{}@{}/{}".format(
+    database_user, database_passwrd, database_host, database_name)
 
 db = SQLAlchemy()
 
@@ -15,8 +23,9 @@ setup_db(app)
 '''
 
 
-def setup_db(app):
-    app.config.from_object('config')
+def setup_db(app, database_path=database_path):
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
     db.create_all()
@@ -59,8 +68,8 @@ class Question(db.Model):
             'id': self.id,
             'question': self.question,
             'answer': self.answer,
-            'category': self.category,
-            'difficulty': self.difficulty
+            'difficulty': self.difficulty,
+            'category': self.category
         }
 
 
