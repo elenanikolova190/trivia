@@ -244,6 +244,45 @@ def create_app(test_config=None):
   and shown whether they were correct or not.
   '''
 
+    @app.route("/quizzes", methods=['POST'])
+    def generate_quiz_question():
+        body = request.get_json()
+        previous_questions = body.get('previous_questions', None)
+        quiz_category = body.get('quiz_category', None)
+
+        try:
+            if quiz_category:
+                if quiz_category['id'] == 0:  # when ALL categories are selected
+                    selection = Question.query.filter(
+                        Question.id.notin_(previous_questions)).all()
+                else:
+                    selection = Question.query.filter_by(category=quiz_category['id']).filter(
+                        Question.id.notin_(previous_questions)).all()
+
+                length_question = len(selection)
+                if length_question > 0:
+                    result = {
+                        "success": True,
+                        "question": Question.format(
+                            selection[random.randrange(
+                                0,
+                                length_question
+                            )]
+                        )
+                    }
+                else:
+                    result = {
+                        "success": True,
+                        "question": None
+                    }
+                return jsonify(result)
+        except:
+            print(sys.exc_info())
+            db.session.rollback()
+            abort(404)
+        finally:
+            db.session.close()
+
     '''
   @TODO:
   Create error handlers for all expected errors
