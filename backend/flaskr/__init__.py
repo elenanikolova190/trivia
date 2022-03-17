@@ -91,7 +91,7 @@ def create_app(test_config=None):
         except:
             print(sys.exc_info())
             db.session.rollback()
-            abort(500)
+            abort(422)
 
         finally:
             db.session.close()
@@ -103,11 +103,11 @@ def create_app(test_config=None):
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page.
   '''
-    @ app.route("/questions/<int:question_id>", methods=["DELETE"])
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         try:
             question = Question.query.filter(
-                question.id == question_id).one_or_none()
+                Question.id == question_id).one_or_none()
 
             if question is None:
                 abort(404)
@@ -117,11 +117,12 @@ def create_app(test_config=None):
             current_questions = paginate_questions(request, selection)
 
             return jsonify({
-                "success": True,
-                "deleted": question_id,
-                "questions": current_questions,
-                "total_questions": len(Question.query.all()),
+                'success': True,
+                'deleted': question_id,
+                'questions': current_questions,
+                'total_questions': len(Question.query.all())
             })
+
         except:
             abort(422)
 
@@ -138,14 +139,13 @@ def create_app(test_config=None):
 
     @app.route('/questions', methods=['POST'])
     def add_question():
-        error = False
         body = {}
         try:
             body = request.get_json()
 
             if not ('question' in body and 'answer' in body and
                     'difficulty' in body and 'category' in body):
-                abort(422)
+                abort(404)
 
             question = body.get('question', None)
             answer = body.get('answer', None)
@@ -155,7 +155,7 @@ def create_app(test_config=None):
                 question=question, answer=answer, category=category, difficulty=difficulty)
             new_question.insert()
 
-        # get all questions and paginate
+            # get all questions and paginate
             selection = Question.query.order_by(Question.id).all()
             current_questions = paginate_questions(request, selection)
 
@@ -182,20 +182,21 @@ def create_app(test_config=None):
     def search_questions():
         body = request.get_json()
         search_term = body.get('searchTerm', None)
+
         try:
             if search_term:
                 selection = Question.query.filter(Question.question.ilike
                                                   (f'%{search_term}%')).all()
                 current_questions = paginate_questions(request, selection)
 
-            return jsonify({
-                'success': True,
-                'questions':  current_questions,
-                'total_questions': len(selection),
-                'current_category': None
-            })
+                return jsonify({
+                    'success': True,
+                    'questions':  current_questions,
+                    'total_questions': len(selection),
+                    'current_category': None
+                })
         except:
-            abort(422)
+            abort(404)
 
     '''
   @TODO:
