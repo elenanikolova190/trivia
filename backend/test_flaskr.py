@@ -68,23 +68,23 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
 
     def test_delete_question(self):
-        res = self.client().delete('/questions/23')
+        res = self.client().delete('/questions/1')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
 
-    def test_404_delete_question(self):
+    def test_422_delete_question(self):
         res = self.client().delete('/questions/100')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 422)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "resource not found")
+        self.assertEqual(data["message"], "unprocessable")
 
     def test_search_questions(self):
         res = self.client().post("/questions/search",
-                                 json={"searchTerm": "organ"})
+                                 json={"searchTerm": "title"})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
